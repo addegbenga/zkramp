@@ -1,7 +1,7 @@
 name: CI
 on: [push, pull_request_target]
 jobs:
-  test:
+  check:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -32,7 +32,7 @@ jobs:
       # Node.js setup for other checks
       - uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: "lts/*"
 
       # Website lint
       - name: Install website dependencies
