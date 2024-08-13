@@ -1,0 +1,59 @@
+name: CI
+on: [push, pull_request_target]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout the base branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.base_ref }}
+      - name: Checkout the PR code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: "pr-code"
+
+      # Cairo setup and checks
+      - uses: software-mansion/setup-scarb@v1
+      - name: Check cairo format
+        run: scarb fmt --check
+        working-directory: ./pr-code/contracts
+      - name: Build cairo programs
+        run: scarb build
+        working-directory: ./pr-code/contracts
+      - name: Run cairo tests
+        run: scarb test
+        working-directory: ./pr-code/contracts
+
+      # Node.js setup for other checks
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      # Website lint
+      - name: Install website dependencies
+        run: yarn install
+        working-directory: ./pr-code/website
+      - name: Run website lint
+        run: yarn lint
+        working-directory: ./pr-code/website
+
+      # Client lint
+      - name: Install client dependencies
+        run: yarn install
+        working-directory: ./pr-code/client
+      - name: Run client lint
+        run: yarn lint
+        working-directory: ./pr-code/client
+
+      # Extension lint
+      - name: Install extension dependencies
+        run: yarn install
+        working-directory: ./pr-code/extension
+      - name: Run extension lint
+        run: yarn lint
+        working-directory: ./pr-code/extension
